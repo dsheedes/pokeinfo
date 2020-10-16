@@ -10,7 +10,7 @@ const BOSS_URL = "https://leekduck.com/boss/";
 const EVENT_URL = "https://leekduck.com/events/";
 var CronJob = require('cron').CronJob; // For checking everything on a schedule
 
-let env = require('env.json'); // Environment variables
+let env = require('./env.json'); // Environment variables
 
 let prefix;
 
