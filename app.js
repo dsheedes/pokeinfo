@@ -99,30 +99,31 @@ function getBoss(){
           fetch("https://leekduck.com"+imageUrl) // We have to download the image, discord doesnt like remote crap.
           .then(res => {
               const dest = fs.createWriteStream('./tempboss.jpg');
-              res.body.pipe(dest);
+              let p = res.body.pipe(dest);
+              p.on("finish",() => {
+                const text = $(".page-date").text()+"\n";
+                const attachment = new Discord.MessageAttachment("./tempboss.jpg");
+                const e = {
+                  title:text,
+                  image:{
+                    url:"attachment://tempboss.jpg"
+                  },
+                  url:BOSS_URL,
+                  color:0xffde00,
+                  footer: {
+                    text: 'Created by gee#0749',
+                    icon_url: 'https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png',
+                  },
+                  timestamp:new Date()
+                }
+                base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
+                  fs.unlink('./temp.jpg');
+                });
+                base.boss_last.lastUrl = imageUrl;
+                updateBase(base.boss.guild.id);
+              });
           })
-          .then(() => {
-            const text = $(".page-date").text()+"\n";
-            const attachment = new Discord.MessageAttachment("./tempboss.jpg");
-            const e = {
-		title:text,
-		image:{
-		url:"attachment://tempboss.jpg"
-		}
-		}
-	    const embed = new Discord.MessageEmbed()
-            .setTitle(text)
-            .setURL(BOSS_URL)
-            .setImage("attachment://tempboss.jpg")
-            .setColor(0xFFDE00)
-            .setFooter("Created by gee#0749", "https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png")
-            .setTimestamp(new Date());
-            base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
-              fs.unlink('./temp.jpg');
-            });
-            base.boss_last.lastUrl = imageUrl;
-            updateBase(base.boss.guild.id);
-          });
+
         } // else there are no updates;
       });
     } else {
