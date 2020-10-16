@@ -85,7 +85,15 @@ function getBoss(){
         if(imageUrl != base.boss_last.lastUrl){
           const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl);
           const text = $(".page-date").text()+"\n";
-          base.boss.send(text, attachment).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
+
+          const embed = new Discord.MessageEmbed()
+          .setTitle(text)
+          .setDescription(`https://leekduck.com/`)
+          .setImage("https://leekduck.com"+imageUrl)
+          .setColor(0xFFDE00)
+          .setFooter("Created by gee#0749", "https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png")
+          .setTimestamp(new Date());
+          base.boss.send(embed).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
           base.boss_last.lastUrl = imageUrl;
           updateBase(base.boss.guild.id);
         } // else there are no updates;
