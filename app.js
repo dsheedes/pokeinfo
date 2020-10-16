@@ -98,14 +98,8 @@ function getBoss(){
         const $ = cheerio.load(body);
         const imageUrl = $("#graphic > img").attr("src");
         if(imageUrl != base.boss_last.lastUrl){
-          fetch("https://leekduck.com"+imageUrl) // We have to download the image, discord doesnt like remote crap.
-          .then(res => {
-	      console.log("bro sup");
-              const dest = fs.createWriteStream('./tempboss.jpg');
-              let p = res.body.pipe(dest);
-              p.on("finish",() => {
                 const text = $(".page-date").text()+"\n";
-                const attachment = new Discord.MessageAttachment("./tempboss.jpg");
+                const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl, "tempboss.jpg");
                 const e = {
                   title:text,
                   image:{
@@ -119,16 +113,9 @@ function getBoss(){
                   },
                   timestamp:new Date()
                 }
-		console.log("sup bro");
-                base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
-                  fs.unlink('./temp.jpg', (err) => {
-		if(err) console.error(err);
-			});
-                });
+                base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
                 base.boss_last.lastUrl = imageUrl;
                 updateBase(base.boss.guild.id);
-              });
-          })
 
         } // else there are no updates;
       });
