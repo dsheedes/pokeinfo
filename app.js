@@ -36,7 +36,7 @@ let base = {
 let commands = new Map();
 function updateBase(gid){
   console.log(base);
-  connection.query("UPDATE general SET VALUES(null, ?, ?, ?, ?, ?, default) WHERE gid = ?", [base.prefix, base.boss, base.event, base.boss_last.toString(), base.event_last.toString(), base.last_updated, gid], (err, res, fields) => {
+  connection.query("UPDATE `pokeinfo.general` SET VALUES(null, ?, ?, ?, ?, ?, default) WHERE gid = ?", [base.prefix, base.boss, base.event, base.boss_last.toString(), base.event_last.toString(), base.last_updated, gid], (err, res, fields) => {
     if(err){
       console.error("Error with updating database", err);
     } 
