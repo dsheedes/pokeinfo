@@ -1,6 +1,8 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+const mysql = require('mysql2'); // Databases, yay!
+
 const fetch = require('node-fetch'); // For fetching pages
 
 const moment = require('moment'); // For formatting date & time
@@ -11,6 +13,12 @@ const EVENT_URL = "https://leekduck.com/events/";
 var CronJob = require('cron').CronJob; // For checking everything on a schedule
 
 let env = require('./env.json'); // Environment variables
+
+const connection = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  database: 'pokeinfo'
+});
 
 let prefix;
 
@@ -78,10 +86,23 @@ function getBoss(){
   }, null, true, 'Europe/Berlin');
   job.start();
 }
-
+let settings;
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
-  prefix = env.prefix;
+  
+  connection.query(`SELECT * FROM general WHERE gid = ? LIMIT 1`, [client.guilds.cache.first().id], (err, res, fie) => {
+    if(err) throw err;
+
+    if(res){
+      base.boss = res[0].boss;
+      base.event = res[0].event;
+
+      base.lastBoss = res[0].boss_last;
+      base.lastEvent = res[0].event_last;
+
+      base.prefix = res[0].prefix;
+    }
+  }); 
   
   getBoss(); // start boss grabbing
 });
