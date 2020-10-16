@@ -20,6 +20,7 @@ let base = {
   boss:null,
   event:null
 }
+let commands = new Map();
 commands.set("setboss", () => {
   let message = this.message;
 
@@ -77,8 +78,6 @@ function getBoss(){
   }, null, true, 'Europe/Berlin');
   job.start();
 }
-
-let commands = new Map();
 
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
