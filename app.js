@@ -93,7 +93,7 @@ client.on('message', message => {
 
   if(instructions[0].startsWith(env.prefix)){
     if(commands.has(instructions[1])){
-      commands.get(instructions[1]).call({message:message});      
+      commands.get(instruction[1]).call({message:message});      
     } else message.channel.send("Command not found. :\\");
   } // Else no prefix, no instruction
 });
