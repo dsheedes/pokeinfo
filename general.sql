@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 16, 2020 at 05:34 PM
+-- Generation Time: Oct 16, 2020 at 05:37 PM
 -- Server version: 10.4.11-MariaDB
 -- PHP Version: 7.4.6
 
@@ -33,8 +33,8 @@ CREATE TABLE `general` (
   `prefix` varchar(1) NOT NULL,
   `boss` varchar(32) DEFAULT NULL,
   `event` varchar(32) DEFAULT NULL,
-  `boss_last` datetime NOT NULL,
-  `event_last` datetime NOT NULL,
+  `boss_last` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`boss_last`)),
+  `event_last` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`event_last`)),
   `last_updated` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
