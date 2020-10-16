@@ -45,10 +45,12 @@ var download = function(uri, filename, callback){
   });
 };
 function updateBase(gid){
+console.log("updatebase")
  connection.query("UPDATE `general` SET prefix = ?, boss = ?, event = ?, boss_last = ?, event_last = ?, last_updated = ?  WHERE gid = ?", [base.prefix, ((base.boss)?base.boss.id:null), ((base.event)?base.event.id:null), JSON.stringify(base.boss_last), JSON.stringify(base.event_last), base.last_updated, new Date(), gid], (err, res, fields) => {
     if(err){
       console.error("Error with updating database", err);
     } 
+console.log("finished?");
     // updated;
   });
 }
@@ -98,6 +100,7 @@ function getBoss(){
         if(imageUrl != base.boss_last.lastUrl){
           fetch("https://leekduck.com"+imageUrl) // We have to download the image, discord doesnt like remote crap.
           .then(res => {
+	      console.log("bro sup");
               const dest = fs.createWriteStream('./tempboss.jpg');
               let p = res.body.pipe(dest);
               p.on("finish",() => {
@@ -116,8 +119,11 @@ function getBoss(){
                   },
                   timestamp:new Date()
                 }
+		console.log("sup bro");
                 base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
-                  fs.unlink('./temp.jpg');
+                  fs.unlink('./temp.jpg', (err) => {
+		if(err) console.error(err);
+			});
                 });
                 base.boss_last.lastUrl = imageUrl;
                 updateBase(base.boss.guild.id);
@@ -167,5 +173,7 @@ client.on('message', message => {
     } else message.channel.send("Command not found. :\\");
   } // Else no prefix, no instruction
 });
-
+process.on('uncaughtException', function (error) {
+   console.log(error);
+});
 client.login(env.token);
