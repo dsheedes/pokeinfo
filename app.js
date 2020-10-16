@@ -21,13 +21,11 @@ let base = {
   event:null
 }
 let commands = new Map();
-commands.set("setboss", () => {
-  let message = this.message;
-
+commands.set("setboss", (message) => {
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
-    base.boss = message.mentions.channels.first().id;
+    base.boss = message.mentions.channels.first();
 
-    message.channel.send(`Boss channel set to <#${base.boss}>`);
+    message.channel.send(`Boss channel set to ${base.boss}`);
     // send message that it's set
   } else {
     // send message that something is wrong. fucker
@@ -38,7 +36,7 @@ commands.set("setevent", () => {
   let message = this.message;
 
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
-    base.event = message.mentions.channels.first().id;
+    base.event = message.mentions.channels.first();
 
     // send message that it's set
   } else {
@@ -58,20 +56,19 @@ commands.set("setprefix", () => {
 
 function getBoss(){
   console.log("Scheduling cron");
-  var job = new CronJob('0 0 * * *', function() {
+  var job = new CronJob('* * * * *', function() {
     if(base.boss){
       fetch(BOSS_URL)
       .then(res => res.text())
       .then(body => {
         // we parse data and extract boss image;
         const $ = cheerio.load(body);
-
-        const imageUrl = $("#graphic > img").src();
+        const imageUrl = $("#graphic > img").attr("src");
 
         if(imageUrl != previousImageUrl){
-          const attachment = new MessageAttachment(imageUrl);
+          const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl);
           const text = $(".page-date").text()+"\n"+BOSS_URL;
-          message.channel.send(text, attachment).catch(() => {console.error("Something went wrong while sending message.")});
+          base.boss.send(text, attachment).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
           previousImageUrl = imageUrl;
         } // else there are no updates;
       });
@@ -95,7 +92,7 @@ client.on('message', message => {
 
   if(instructions[0].startsWith(env.prefix)){
     if(commands.has(instruction[1])){
-      commands.get(instruction[1]).call({message:message});      
+      commands.get(instruction[1])(message);      
     } else message.channel.send("Command not found. :\\");
   } // Else no prefix, no instruction
 });
