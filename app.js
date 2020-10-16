@@ -26,12 +26,17 @@ let prefix;
 let previousImageUrl = null;
 
 let base = {
+  prefix:env.prefix,
   boss:null,
-  event:null
+  event:null,
+  boss_last:{},
+  event_last:{},
+  last_updated:null
 }
 let commands = new Map();
 function updateBase(gid){
-  connection.query("UPDATE general SET VALUES(null, ?, ?, ?, ?, ?, default) WHERE gid = ?", [base.prefix, base.boss, base.last, base.boss_last.toString(), base.event_last.toString(), base.last_updated, gid], (err, res, fields) => {
+  console.log(base);
+  connection.query("UPDATE general SET VALUES(null, ?, ?, ?, ?, ?, default) WHERE gid = ?", [base.prefix, base.boss, base.event, base.boss_last.toString(), base.event_last.toString(), base.last_updated, gid], (err, res, fields) => {
     if(err){
       console.error("Error with updating database", err);
     } 
