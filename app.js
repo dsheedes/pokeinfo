@@ -92,6 +92,7 @@ client.on('message', message => {
   let instructions = message.content.split(" ");
   let instruction = instructions[0].split(env.prefix);
 
+  console.log(instructions, instruction);
   if(instruction[0] == env.prefix){
     if(commands.has(instructions[0])){
       commands.get(instructions[0]).call({message:message});      
