@@ -31,7 +31,7 @@ let base = {
 }
 let commands = new Map();
 function updateBase(gid){
-  connection.query("UPDATE general SET prefix = ?, boss = ?, last = ?, boss_last = ?, event_last = ?, last_updated = default", [base.prefix, base.boss, base.last, base.boss_last, base.event_last, base.last_updated], (err, res, fields) => {
+  connection.query("UPDATE general SET prefix = ?, boss = ?, last = ?, boss_last = ?, event_last = ?, last_updated = ?", [base.prefix, base.boss, base.last, base.boss_last, base.event_last, base.last_updated, new Date()], (err, res, fields) => {
     if(err){
       console.error("Error with updating database", err);
     } 
