@@ -35,8 +35,7 @@ let base = {
 }
 let commands = new Map();
 function updateBase(gid){
-  console.log(base);
-  connection.execute("UPDATE `general` SET prefix = ?, boss = ?, event = ?, boss_last = ?, event_last = ?, last_updated = default WHERE gid = ?", [base.prefix, base.boss, base.event, base.boss_last.toString(), base.event_last.toString(), base.last_updated, gid], (err, res, fields) => {
+ connection.query("UPDATE `general` SET prefix = ?, boss = ?, event = ?, boss_last = ?, event_last = ?, last_updated = ?  WHERE gid = ?", [base.prefix, ((base.boss)?base.boss.id:null), ((base.event)?base.event.id:null), JSON.stringify(base.boss_last), JSON.stringify(base.event_last), base.last_updated, new Date(), gid], (err, res, fields) => {
     if(err){
       console.error("Error with updating database", err);
     } 
@@ -46,7 +45,7 @@ function updateBase(gid){
 commands.set("setboss", (message) => {
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
     base.boss = message.mentions.channels.first();
-    updateBase();
+    updateBase(message.guild.id);
     message.channel.send(`Boss channel set to ${base.boss}`);
     // send message that it's set
   } else {
@@ -59,7 +58,7 @@ commands.set("setevent", () => {
 
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
     base.event = message.mentions.channels.first();
-    updateBase();
+    updateBase(message.guild.id);
     // send message that it's set
   } else {
     // send message that something is wrong. fucker
@@ -78,7 +77,7 @@ commands.set("setprefix", () => {
 
 function getBoss(){
   console.log("Scheduling cron...");
-  var job = new CronJob('0 0 * * *', function() {
+  var job = new CronJob('* * * * *', function() {
     if(base.boss){
       fetch(BOSS_URL)
       .then(res => res.text())
@@ -90,11 +89,11 @@ function getBoss(){
         if(imageUrl != base.boss_last.lastUrl){
           const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl);
           const text = $(".page-date").text()+"\n";
-
           const embed = new Discord.MessageEmbed()
           .setTitle(text)
+	  .setURL(BOSS_URL)
           .setDescription(`https://leekduck.com/`)
-          .setImage("https://leekduck.com"+imageUrl)
+          .setImage(attachment.url)
           .setColor(0xFFDE00)
           .setFooter("Created by gee#0749", "https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png")
           .setTimestamp(new Date());
@@ -121,10 +120,13 @@ client.on('ready', () => {
       base.boss = res[0].boss;
       base.event = res[0].event;
 
-      base.lastBoss = JSON.parse(res[0].boss_last);
-      base.lastEvent = JSON.parse(res[0].event_last);
+      base.boss_last = JSON.parse(res[0].boss_last);
+      base.event_last = JSON.parse(res[0].event_last);
+      base.last_updated = res[0].last_updated;
 
       base.prefix = res[0].prefix;
+
+console.log(base);
     }
   }); 
   
