@@ -88,7 +88,7 @@ client.on('ready', () => {
   getBoss(); // start boss grabbing
 });
 
-client.on('message', msg => {
+client.on('message', message => {
   let instructions = message.content.split(" ");
   let instruction = instructions[0].split(env.prefix);
 
