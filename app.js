@@ -1,6 +1,8 @@
 const Discord = require('discord.js');
 const client = new Discord.Client();
 
+const fs = require('fs'); // File system
+
 const mysql = require('mysql2'); // Databases, yay!
 
 const fetch = require('node-fetch'); // For fetching pages
@@ -96,21 +98,26 @@ function getBoss(){
         if(imageUrl != base.boss_last.lastUrl){
           fetch("https://leekduck.com"+imageUrl) // We have to download the image, discord doesnt like remote crap.
           .then(res => {
-              const dest = fs.createWriteStream('./temp.jpg');
+              const dest = fs.createWriteStream('./tempboss.jpg');
               res.body.pipe(dest);
           })
           .then(() => {
-            const attachment = new Discord.MessageAttachment("./temp.jpg");
             const text = $(".page-date").text()+"\n";
-            const embed = new Discord.MessageEmbed()
+            const attachment = new Discord.MessageAttachment("./tempboss.jpg");
+            const e = {
+		title:text,
+		image:{
+		url:"attachment://tempboss.jpg"
+		}
+		}
+	    const embed = new Discord.MessageEmbed()
             .setTitle(text)
             .setURL(BOSS_URL)
-            .setDescription(`https://leekduck.com/`)
-            .setImage(attachment.url)
+            .setImage("attachment://tempboss.jpg")
             .setColor(0xFFDE00)
             .setFooter("Created by gee#0749", "https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png")
             .setTimestamp(new Date());
-            base.boss.send(embed).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
+            base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
               fs.unlink('./temp.jpg');
             });
             base.boss_last.lastUrl = imageUrl;
