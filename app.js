@@ -16,8 +16,8 @@ let env = require('./env.json'); // Environment variables
 
 const connection = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  password:'',
+  user: 'alf',
+  password:'red',
   database: 'pokeinfo'
 });
 
@@ -73,7 +73,7 @@ commands.set("setprefix", () => {
 
 function getBoss(){
   console.log("Scheduling cron...");
-  var job = new CronJob('* * * * *', function() {
+  var job = new CronJob('0 0 * * *', function() {
     if(base.boss){
       fetch(BOSS_URL)
       .then(res => res.text())
@@ -104,6 +104,7 @@ client.on('ready', () => {
     if(err) throw err;
 
     if(res){
+	console.log(res);
       base.boss = res[0].boss;
       base.event = res[0].event;
 
