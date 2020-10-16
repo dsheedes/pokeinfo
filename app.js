@@ -20,6 +20,38 @@ let base = {
   boss:null,
   event:null
 }
+commands.set("setboss", () => {
+  let message = this.message;
+
+  if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
+    base.boss = message.mentions.channels.first().id;
+
+    // send message that it's set
+  } else {
+    // send message that something is wrong. fucker
+  }
+});
+commands.set("setevent", () => {
+  let message = this.message;
+
+  if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
+    base.event = message.mentions.channels.first().id;
+
+    // send message that it's set
+  } else {
+    // send message that something is wrong. fucker
+  }
+});
+commands.set("setprefix", () => {
+  let ins = message.content.split(" ");
+
+  if(ins.length > 1){
+    prefix = ins[1].startsWith();
+    // send message, prefix set.
+  } else {
+    // send message, no parameter
+  }
+});
 
 function getBoss(){
   var job = new CronJob('0 0 * * *', function() {
@@ -51,38 +83,7 @@ let commands = new Map();
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
   prefix = env.prefix;
-  commands.set("setboss", () => {
-    let message = this.message;
   
-    if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
-      base.boss = message.mentions.channels.first().id;
-  
-      // send message that it's set
-    } else {
-      // send message that something is wrong. fucker
-    }
-  });
-  commands.set("setevent", () => {
-    let message = this.message;
-  
-    if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
-      base.event = message.mentions.channels.first().id;
-  
-      // send message that it's set
-    } else {
-      // send message that something is wrong. fucker
-    }
-  });
-  commands.set("setprefix", () => {
-    let ins = message.content.split(" ");
-  
-    if(ins.length > 1){
-      prefix = ins[1].startsWith();
-      // send message, prefix set.
-    } else {
-      // send message, no parameter
-    }
-  });
   getBoss(); // start boss grabbing
 });
 
@@ -90,7 +91,7 @@ client.on('message', message => {
   let instructions = message.content.split(" ");
   let instruction = instructions[0].split(env.prefix);
 
-  if(instruction[0] == ''){
+  if(instructions.startsWith(env.prefix)){
     if(commands.has(instructions[1])){
       commands.get(instructions[1]).call({message:message});      
     } else message.channel.send("Command not found. :\\");
