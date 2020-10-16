@@ -17,6 +17,7 @@ let env = require('./env.json'); // Environment variables
 const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root',
+  password:'',
   database: 'pokeinfo'
 });
 
