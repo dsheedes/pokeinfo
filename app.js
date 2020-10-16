@@ -93,9 +93,9 @@ client.on('message', message => {
   let instruction = instructions[0].split(env.prefix);
 
   console.log(instructions, instruction);
-  if(instruction[0] == env.prefix){
-    if(commands.has(instructions[0])){
-      commands.get(instructions[0]).call({message:message});      
+  if(instruction[0] == ''){
+    if(commands.has(instructions[1])){
+      commands.get(instructions[1]).call({message:message});      
     } else message.channel.send("Command not found. :\\");
   } // Else no prefix, no instruction
 });
