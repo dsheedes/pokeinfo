@@ -34,6 +34,14 @@ let base = {
   last_updated:null
 }
 let commands = new Map();
+var download = function(uri, filename, callback){
+  request.head(uri, function(err, res, body){
+    console.log('content-type:', res.headers['content-type']);
+    console.log('content-length:', res.headers['content-length']);
+
+    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+  });
+};
 function updateBase(gid){
  connection.query("UPDATE `general` SET prefix = ?, boss = ?, event = ?, boss_last = ?, event_last = ?, last_updated = ?  WHERE gid = ?", [base.prefix, ((base.boss)?base.boss.id:null), ((base.event)?base.event.id:null), JSON.stringify(base.boss_last), JSON.stringify(base.event_last), base.last_updated, new Date(), gid], (err, res, fields) => {
     if(err){
@@ -85,21 +93,29 @@ function getBoss(){
         // we parse data and extract boss image;
         const $ = cheerio.load(body);
         const imageUrl = $("#graphic > img").attr("src");
-
         if(imageUrl != base.boss_last.lastUrl){
-          const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl);
-          const text = $(".page-date").text()+"\n";
-          const embed = new Discord.MessageEmbed()
-          .setTitle(text)
-	  .setURL(BOSS_URL)
-          .setDescription(`https://leekduck.com/`)
-          .setImage(attachment.url)
-          .setColor(0xFFDE00)
-          .setFooter("Created by gee#0749", "https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png")
-          .setTimestamp(new Date());
-          base.boss.send(embed).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
-          base.boss_last.lastUrl = imageUrl;
-          updateBase(base.boss.guild.id);
+          fetch("https://leekduck.com"+imageUrl) // We have to download the image, discord doesnt like remote crap.
+          .then(res => {
+              const dest = fs.createWriteStream('./temp.jpg');
+              res.body.pipe(dest);
+          })
+          .then(() => {
+            const attachment = new Discord.MessageAttachment("./temp.jpg");
+            const text = $(".page-date").text()+"\n";
+            const embed = new Discord.MessageEmbed()
+            .setTitle(text)
+            .setURL(BOSS_URL)
+            .setDescription(`https://leekduck.com/`)
+            .setImage(attachment.url)
+            .setColor(0xFFDE00)
+            .setFooter("Created by gee#0749", "https://toppng.com/uploads/preview/okemon-pokeball-game-go-icon-free-pokemon-go-11563162943wavk28aonz.png")
+            .setTimestamp(new Date());
+            base.boss.send(embed).catch((e) => {console.error("Something went wrong while sending message.\n", e)}).then(() => {
+              fs.unlink('./temp.jpg');
+            });
+            base.boss_last.lastUrl = imageUrl;
+            updateBase(base.boss.guild.id);
+          });
         } // else there are no updates;
       });
     } else {
