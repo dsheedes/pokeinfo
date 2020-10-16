@@ -55,6 +55,7 @@ commands.set("setprefix", () => {
 });
 
 function getBoss(){
+  console.log("Scheduling cron");
   var job = new CronJob('0 0 * * *', function() {
     if(base.boss){
       fetch(BOSS_URL)
@@ -90,7 +91,7 @@ client.on('message', message => {
   let instructions = message.content.split(" ");
   let instruction = instructions[0].split(env.prefix);
 
-  if(instructions.startsWith(env.prefix)){
+  if(instructions[0].startsWith(env.prefix)){
     if(commands.has(instructions[1])){
       commands.get(instructions[1]).call({message:message});      
     } else message.channel.send("Command not found. :\\");
