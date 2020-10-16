@@ -29,10 +29,18 @@ let base = {
   event:null
 }
 let commands = new Map();
+function updateBase(gid){
+  connection.query("UPDATE general SET prefix = ?, boss = ?, last = ?, boss_last = ?, event_last = ?, last_updated = default", [base.prefix, base.boss, base.last, base.boss_last, base.event_last, base.last_updated], (err, res) => {
+    if(err){
+      console.error("Error with updating database", err);
+    } 
+    // updated;
+  });
+}
 commands.set("setboss", (message) => {
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
     base.boss = message.mentions.channels.first();
-
+    updateBase();
     message.channel.send(`Boss channel set to ${base.boss}`);
     // send message that it's set
   } else {
@@ -45,7 +53,7 @@ commands.set("setevent", () => {
 
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
     base.event = message.mentions.channels.first();
-
+    updateBase();
     // send message that it's set
   } else {
     // send message that something is wrong. fucker
@@ -55,7 +63,7 @@ commands.set("setprefix", () => {
   let ins = message.content.split(" ");
 
   if(ins.length > 1){
-    prefix = ins[1].startsWith();
+    base.prefix = ins[1].substring(0, 1);
     // send message, prefix set.
   } else {
     // send message, no parameter
@@ -63,7 +71,7 @@ commands.set("setprefix", () => {
 });
 
 function getBoss(){
-  console.log("Scheduling cron");
+  console.log("Scheduling cron...");
   var job = new CronJob('* * * * *', function() {
     if(base.boss){
       fetch(BOSS_URL)
@@ -73,11 +81,12 @@ function getBoss(){
         const $ = cheerio.load(body);
         const imageUrl = $("#graphic > img").attr("src");
 
-        if(imageUrl != previousImageUrl){
+        if(imageUrl != base.boss_last.lastUrl){
           const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl);
-          const text = $(".page-date").text()+"\n"+BOSS_URL;
+          const text = $(".page-date").text()+"\n";
           base.boss.send(text, attachment).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
-          previousImageUrl = imageUrl;
+          base.boss_last.lastUrl = imageUrl;
+          updateBase(base.boss.guild.id);
         } // else there are no updates;
       });
     } else {
