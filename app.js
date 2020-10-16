@@ -27,9 +27,11 @@ commands.set("setboss", () => {
   if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
     base.boss = message.mentions.channels.first().id;
 
+    message.channel.send(`Boss channel set to <#${base.boss}>`);
     // send message that it's set
   } else {
     // send message that something is wrong. fucker
+    message.channel.send(`Something went wrong, fucker.`);
   }
 });
 commands.set("setevent", () => {
