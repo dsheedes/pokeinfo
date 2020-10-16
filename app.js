@@ -84,6 +84,8 @@ commands.set("setprefix", () => {
 client.on('ready', () => {
   console.log(`Logged in as ${client.user.tag}!`);
   prefix = env.prefix;
+
+  getBoss(); // start boss grabbing
 });
 
 client.on('message', msg => {
