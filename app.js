@@ -32,6 +32,24 @@ let base = {
   last_updated:null
 }
 let commands = new Map();
+
+function generateMessage(message, type){
+  let color = 0x277da1;
+  if(type == "success"){
+    color = 0x90be6d
+  } else if(type == "error"){
+    color = 0xf94144
+  } else if(type == "warn"){
+    color = 0xf8961e
+  }
+  const embed = Discord.MessageEmbed()
+  .setDescription(message)
+  .setColor(color)
+  .setTimestamp(new Date());
+
+  return embed;
+}
+
 function updateBase(gid){
 	let inputboss;
 	let inputevent;
@@ -50,34 +68,30 @@ function updateBase(gid){
   });
 }
 commands.set("setboss", (message) => {
-  if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
-    base.boss = message.mentions.channels.first();
-    updateBase(message.guild.id);
-    message.channel.send(`Boss channel set to ${base.boss}`);
+  if(message.member.hasPermission('ADMINISTRATOR')){
+    if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
+      base.boss = message.mentions.channels.first();
+      updateBase(message.guild.id);
+      message.channel.send(generateMessage(`Boss channel set to ${base.boss}`, "success"));
+    } else {
+      message.channel.send(generateMessage(`Something went wrong.`, "error"));
+    }
   } else {
-    message.channel.send(`Something went wrong.`);
+    message.channel.send(generateMessage(`You do not have enough permmissions to use this command.`, "warn"));
   }
 });
 commands.set("setevent", (message) => {
-  if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
-    base.event = message.mentions.channels.first();
-    updateBase(message.guild.id);
-    // send message that it's set
-    message.channel.send(`Event channel set to ${base.event}`);
-  } else {
-    // send message that something is wrong. fucker
-    message.channel.send(`Something went wrong.`);
-  }
-});
-commands.set("setprefix", () => {
-  let ins = message.content.split(" ");
-
-  if(ins.length > 1){
-    base.prefix = ins[1].substring(0, 1);
-    // send message, prefix set.
-  } else {
-    // send message, no parameter
-  }
+  if(message.member.hasPermission('ADMINISTRATOR')){
+    if(message && message.mentions && message.mentions.channels && message.mentions.channels.size > 0){
+      base.event = message.mentions.channels.first();
+      updateBase(message.guild.id);
+      // send message that it's set
+      message.channel.send(generateMessage(`Event channel set to ${base.event}`, "success"));
+    } else {
+      // send message that something is wrong. fucker
+      message.channel.send(generateMessage(`Something went wrong.`, "error"));
+    }
+  } else generateMessage("You do not have enough permissions to use this command.", "warn");
 });
 function getEvent(){
   console.log("Scheduling cron..."+moment(new Date()).format("dddd, MMMM Do YYYY, h:mm:ss a"));
@@ -194,7 +208,7 @@ client.on('message', message => {
   if(instructions[0].startsWith(base.prefix)){
     if(commands.has(instruction[1])){
       commands.get(instruction[1])(message);      
-    } else message.channel.send("Command not found. :\\");
+    } else message.channel.send(generateMessage("Command not found.", "error"));
   } // Else no prefix, no instruction
 });
 process.on('uncaughtException', function (error) {
