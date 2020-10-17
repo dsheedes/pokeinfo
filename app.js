@@ -33,7 +33,16 @@ let base = {
 }
 let commands = new Map();
 function updateBase(gid){
- connection.query("UPDATE `general` SET prefix = ?, boss = ?, event = ?, boss_last = ?, event_last = ?, last_updated = ?  WHERE gid = ?", [base.prefix, ((base.boss)?base.boss.id:null), ((base.event)?base.event.id:null), JSON.stringify(base.boss_last), JSON.stringify(base.event_last), base.last_updated, new Date(), gid], (err, res, fields) => {
+	let inputboss;
+	let inputevent;
+	if(base.boss){
+		inputboss = base.boss.id
+	} else inputboss = null;
+
+	if(base.event){
+		inputevent = base.event.id;
+	} else inputevent = null;
+ connection.query("UPDATE `general` SET prefix = ?, boss = ?, event = ?, boss_last = ?, event_last = ?, last_updated = ?  WHERE gid = ?", [base.prefix, inputboss, inputevent, JSON.stringify(base.boss_last), JSON.stringify(base.event_last), new Date(), gid], (err, res, fields) => {
     if(err){
       console.error("Error with updating database", err);
     } 
@@ -46,7 +55,7 @@ commands.set("setboss", (message) => {
     updateBase(message.guild.id);
     message.channel.send(`Boss channel set to ${base.boss}`);
   } else {
-    message.channel.send(`Something went wrong, fucker.`);
+    message.channel.send(`Something went wrong.`);
   }
 });
 commands.set("setevent", (message) => {
@@ -57,7 +66,7 @@ commands.set("setevent", (message) => {
     message.channel.send(`Event channel set to ${base.event}`);
   } else {
     // send message that something is wrong. fucker
-    message.channel.send(`Something went wrong, fucker.`);
+    message.channel.send(`Something went wrong.`);
   }
 });
 commands.set("setprefix", () => {
@@ -72,21 +81,21 @@ commands.set("setprefix", () => {
 });
 function getEvent(){
   console.log("Scheduling cron..."+moment(new Date()).format("dddd, MMMM Do YYYY, h:mm:ss a"));
-  var job = new CronJob('0 0 * * *', function() {
+  var job = new CronJob('* * * * *', function() {
     if(base.event){
       fetch(EVENT_URL, {headers:{'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}})
       .then(res => res.text())
       .then(body => {
-        // we parse data and extract boss image;
         let $ = cheerio.load(body);
         let page = $($(".event")[0]).parent().attr("href");
         fetch("https://leekduck.com"+page)
         .then(r => r.text())
         .then(b => {
           $ = cheerio.load(b);
+		let imgs = [];
           $("#graphic1 > img").each((index, element) => {
             let imageUrl = $(element).attr("src");
-            if(imageUrl != base.boss_last.lastUrl){
+            if(!base.event_last.lastUrl.includes(imageUrl)){
               const title = $(".page-title").text();
               const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl, "tempevent.jpg");
               const e = {
@@ -103,7 +112,9 @@ function getEvent(){
                 timestamp:new Date()
               }
               base.event.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
-              base.event_last.lastUrl = imageUrl;
+	      imgs.push(imageUrl);
+              base.event_last.lastUrl = imgs;
+	      base.event_last.fetched = new Date();
               updateBase(base.event.guild.id);
 
       } // else there are no updates;
@@ -144,6 +155,7 @@ function getBoss(){
                 }
                 base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
                 base.boss_last.lastUrl = imageUrl;
+		base.boss_last.fetched = new Date();
                 updateBase(base.boss.guild.id);
 
         } // else there are no updates;
@@ -169,11 +181,10 @@ client.on('ready', () => {
       base.last_updated = res[0].last_updated;
 
       base.prefix = res[0].prefix;
+      getBoss();
+      getEvent();
     }
   }); 
-  
-  getBoss(); // start boss grabbing
-  getEvent(); // start event grabbing
 });
 
 client.on('message', message => {
