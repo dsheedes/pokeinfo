@@ -95,7 +95,7 @@ commands.set("setevent", (message) => {
 });
 function getEvent(){
   console.log("Scheduling cron..."+moment(new Date()).format("dddd, MMMM Do YYYY, h:mm:ss a"));
-  var job = new CronJob('* * * * *', function() {
+  var job = new CronJob('0 0 * * *', function() {
     if(base.event){
       fetch(EVENT_URL, {headers:{'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}})
       .then(res => res.text())
@@ -143,7 +143,7 @@ function getEvent(){
 }
 function getBoss(){
   console.log("Scheduling cron..."+moment(new Date()).format("dddd, MMMM Do YYYY, h:mm:ss a"));
-  var job = new CronJob('* * * * *', function() {
+  var job = new CronJob('0 0 * * *', function() {
     if(base.boss){
       fetch(BOSS_URL)
       .then(res => res.text())
@@ -211,6 +211,7 @@ client.on('message', message => {
     } else message.channel.send(generateMessage("Command not found.", "error"));
   } // Else no prefix, no instruction
 });
+
 process.on('uncaughtException', function (error) {
    console.log(error);
 });
