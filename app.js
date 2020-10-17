@@ -11,7 +11,7 @@ const moment = require('moment'); // For formatting date & time
 const cheerio = require('cheerio'); // jQuery parser, just to make things easier. :) 
 
 const BOSS_URL = "https://leekduck.com/boss/";
-const EVENT_URL = "https://leekduck.com/events";
+const EVENT_URL = "https://leekduck.com/events/";
 var CronJob = require('cron').CronJob; // For checking everything on a schedule
 
 let env = require('./env.json'); // Environment variables
@@ -72,28 +72,25 @@ commands.set("setprefix", () => {
 });
 function getEvent(){
   console.log("Scheduling cron..."+moment(new Date()).format("dddd, MMMM Do YYYY, h:mm:ss a"));
-  var job = new CronJob('* * * * *', function() {
-    if(base.boss){
-      fetch(EVENT_URL)
+  var job = new CronJob('0 0 * * *', function() {
+    if(base.event){
+      fetch(EVENT_URL, {headers:{'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}})
       .then(res => res.text())
       .then(body => {
         // we parse data and extract boss image;
         let $ = cheerio.load(body);
         let page = $($(".event")[0]).parent().attr("href");
-
-        fetch(EVENT_URL+page)
+        fetch("https://leekduck.com"+page)
         .then(r => r.text())
         .then(b => {
-          let $ = cheerio.load(b);
+          $ = cheerio.load(b);
           $("#graphic1 > img").each((index, element) => {
             let imageUrl = $(element).attr("src");
             if(imageUrl != base.boss_last.lastUrl){
               const title = $(".page-title").text();
-              const eText = $("#event-time-date-box").text().trim();
               const attachment = new Discord.MessageAttachment("https://leekduck.com"+imageUrl, "tempevent.jpg");
               const e = {
-                title:text,
-                description:eText,
+                title:title,
                 image:{
                   url:"attachment://tempevent.jpg"
                 },
@@ -105,9 +102,9 @@ function getEvent(){
                 },
                 timestamp:new Date()
               }
-              base.boss.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
-              base.boss_last.lastUrl = imageUrl;
-              updateBase(base.boss.guild.id);
+              base.event.send({files:[attachment], embed:e}).catch((e) => {console.error("Something went wrong while sending message.\n", e)});
+              base.event_last.lastUrl = imageUrl;
+              updateBase(base.event.guild.id);
 
       } // else there are no updates;
           });
@@ -176,6 +173,7 @@ client.on('ready', () => {
   }); 
   
   getBoss(); // start boss grabbing
+  getEvent(); // start event grabbing
 });
 
 client.on('message', message => {
